@@ -164,12 +164,6 @@ namespace WpfApp1
         public Weapon colt_45 = new Weapon();
         public Weapon m40a1 = new Weapon();
 
-        private void Rendering(object o, EventArgs args)
-        {
-            FrameDurations.Add(DateTime.Now.Ticks - PreviousFrameTime);
-            PreviousFrameTime = DateTime.Now.Ticks;
-        }
-
         public async void Play_Click(object sender, RoutedEventArgs e)
         {
             gridok.Background = new ImageBrush(new BitmapImage(new Uri(@"pack://application:,,,/level.png"))); //Меняем бэкграунд на игровой фон
@@ -487,7 +481,6 @@ namespace WpfApp1
         }
     }
    
-    }
 }
 
   
