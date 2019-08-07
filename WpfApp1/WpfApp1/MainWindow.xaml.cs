@@ -148,8 +148,7 @@ namespace WpfApp1
 
         }
 
-        List<long> FrameDurations = new List<long>();
-        long PreviousFrameTime = 0;
+       
         string location = "level"; 
         int count = 0; //Кол-во хода
         int jump_count = 0; //Кол-во (высота) прыжка
