@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Threading;
-
+using System.IO;
 
 namespace WpfApp1
 {
@@ -146,6 +146,16 @@ namespace WpfApp1
 
             chat.Content += "WPF__Engine v0.1";
 
+using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}user.cfg", System.Text.Encoding.Default))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    console.Text = line;
+                    PlayCommand_Click(null, null);
+
+                }
+            }
         }
 
        
