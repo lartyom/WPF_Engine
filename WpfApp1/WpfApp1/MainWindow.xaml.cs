@@ -255,8 +255,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                     { //Переход на вторую локацию с "бункером"
 
                         location = "level_2"; //Меняем локацию    
-                        console.Text += "location";
-                        PlayCommand_Click(null, null);
+                        
                         gridok.Background = new ImageBrush(new BitmapImage(new Uri(@"pack://application:,,,/level_2.png")));  //Отображаем другой бэкграунд
                         Canvas.SetLeft(Player.general, 0); //Устанавливаем позицию игрока на место
                         count = 0; //Обнуляем кол-во хода
