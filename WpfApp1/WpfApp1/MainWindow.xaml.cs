@@ -144,7 +144,7 @@ namespace WpfApp1
 
             this.KeyDown += Dotnet_KeyDown; //Присваевыем управление игре
 
-            chat.Content += "WPF__Engine v0.1";
+            chat.Content += "WPF__Engine v0.2";
 
 using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}user.cfg", System.Text.Encoding.Default))
             {
