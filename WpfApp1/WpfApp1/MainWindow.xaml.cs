@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,122 +29,128 @@ namespace WpfApp1
     {
         NPC bot = new NPC();
         //Деревянный ящик
-        Image woodenbox_obj = new Image { Name = "woodbox", Source = new BitmapImage(new Uri(@"pack://application:,,,/objects/wooden_box.png")), Margin = new Thickness(0, 0, 0, -14) };
+        Image woodenbox_obj = new Image { Name = "woodbox", Margin = new Thickness(0, 0, 0, -14) };
         //Игрок
         Canvas player = new Canvas();
-       
+        Image player_obj = new Image { Name = "dotnet" };
+        //NPC
         Canvas player_npc = new Canvas();
-        //Тело NPC
-        Image player_npc_obj = new Image { Name = "bot", Source = new BitmapImage(new Uri(@"pack://application:,,,/player_skin/player_armored.png")), Height = 283, Width = 122 };
-        //Кнопка "Начать игру" в главном меню 
-        Button play = new Button() { Name = "play", Content = "Начать игру" };
-        //Счётик боеприпасов для оружия
-        Label weapon_table = new Label { Name = "weapon_table", Content = "", Foreground = Brushes.White, Background = Brushes.Black, FontFamily = new FontFamily("Consolas") };
-        //Панель сообщений
-        Label chat = new Label { Name = "chat", Content = "",  FontFamily = new FontFamily("Consolas") };
-        //Пуля
-        Image bullet_obj = new Image { Name = "bullet", Height = 73, Width = 78, Source = new BitmapImage(new Uri(@"pack://application:,,,/weapons/bullet.png")) };
+        Image player_npc_obj = new Image { Name = "bot" };
 
-       
+        //Кнопка "Начать игру" в главном меню 
+        Button play = new Button() { Name = "play" };
+        //Счётик боеприпасов для оружия
+        Label weapon_table = new Label { Name = "weapon_table" };
+        //Панель сообщений
+        Label chat = new Label { Name = "chat" };
+        //Пуля
+        Image bullet_obj = new Image { Name = "bullet" };
+        //Оружие в руке
+        Image weapon_obj = new Image { Name = "weapon" };
+
+        public Weapon colt_45 = new Weapon();
+        public Weapon m40a1 = new Weapon();
+
+
 
         public MainWindow()
         {
             InitializeComponent();
-           
-           
-            
-            //Расположение игрока
-            Grid.SetColumnSpan(player, 2);
-            Grid.SetRowSpan(player, 3);
-            //Тело игрока
-            Image player_obj = new Image { Name = "dotnet", Source = new BitmapImage(new Uri(@"pack://application:,,,/player_skin/pixil-frame-0.png")), Height = 283, Width = 122 };          
 
-            //его расположение
-            Canvas.SetTop(player_obj, 129);
-            Grid.SetColumnSpan(player_obj, 2);
-            Grid.SetRowSpan(player_obj, 3);
+            IniFile config = new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini");
+            player_obj.Height = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[0]);
+            player_obj.Width = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[1]);
+            player_npc_obj.Height = Convert.ToInt32(config.Read("size", "player_npc").ToString().Split(',')[0]);
+            player_npc_obj.Width = Convert.ToInt32(config.Read("size", "player_npc").ToString().Split(',')[1]);
+            player_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "player")}", UriKind.RelativeOrAbsolute));
+            player_npc_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "player_npc")}", UriKind.RelativeOrAbsolute));
+            Canvas.SetTop(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[0]));
+            Canvas.SetLeft(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[1]));
+            Canvas.SetTop(player_npc_obj, Convert.ToInt32(config.Read("position", "player_npc").ToString().Split(',')[0]));
+            Canvas.SetLeft(player_npc_obj, Convert.ToInt32(config.Read("position", "player_npc").ToString().Split(',')[1]));
 
-            Canvas.SetTop(player_npc_obj, 129);
-            Canvas.SetLeft(player_npc_obj, 660);
-            Grid.SetColumnSpan(player_npc_obj, 2);
-            Grid.SetRowSpan(player_obj, 3);
-            
+
+
             //его "спавн"
             player.Children.Add(player_obj);
-            
             player_npc.Children.Add(player_npc_obj);
 
-
             //Оружие в руках игрока
-            Image weapon_obj = new Image { Name = "weapon", Height = 73, Width = 78 };
+            weapon_obj.Height = Convert.ToInt32(config.Read("size", "weapon_obj").ToString().Split(',')[0]);
+            weapon_obj.Width = Convert.ToInt32(config.Read("size", "weapon_obj").ToString().Split(',')[1]);
             //его расположение
-            Canvas.SetTop(weapon_obj, 194);
-            Canvas.SetLeft(weapon_obj, 82);
-            Grid.SetColumnSpan(weapon_obj, 2);
-            Grid.SetRowSpan(weapon_obj, 3);
+            Canvas.SetTop(weapon_obj, Convert.ToInt32(config.Read("position", "weapon_obj").ToString().Split(',')[0]));
+            Canvas.SetLeft(weapon_obj, Convert.ToInt32(config.Read("position", "weapon_obj").ToString().Split(',')[1]));
+
             //его "cпавн"
             player.Children.Add(weapon_obj);
 
             //Расположение счётика БП
-            Grid.SetColumn(weapon_table, 5);
-            Grid.SetRow(weapon_table, 4);
+            Grid.SetColumn(weapon_table, Convert.ToInt32(config.Read("cr_position", "weapon_table").ToString().Split(',')[0]));
+            Grid.SetRow(weapon_table, Convert.ToInt32(config.Read("cr_position", "weapon_table").ToString().Split(',')[1]));
+            weapon_table.Content = config.Read("content", "weapon_table");
+            weapon_table.FontFamily = new FontFamily(config.Read("font", "weapon_table"));
+            weapon_table.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("foreground", "weapon_table")));
+            weapon_table.Background = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("background", "weapon_table")));
 
-            Canvas.SetTop(bullet_obj, 194);
-            Canvas.SetLeft(bullet_obj, 82);
-            Grid.SetColumnSpan(bullet_obj, 2);
-            Grid.SetRowSpan(bullet_obj, 3);
-
+            Canvas.SetTop(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[0]));
+            Canvas.SetLeft(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[1]));
+            bullet_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "bullet_obj")}", UriKind.RelativeOrAbsolute));
             //Расположение панели сообщений
-            Grid.SetColumnSpan(chat, 2);
-            Grid.SetRowSpan(chat, 6);
+            Grid.SetColumnSpan(chat, Convert.ToInt32(config.Read("cr_span", "chat").ToString().Split(',')[0]));
+            Grid.SetRowSpan(chat, Convert.ToInt32(config.Read("cr_span", "chat").ToString().Split(',')[1]));
+            chat.Content = config.Read("content", "chat");
+            chat.FontFamily = new FontFamily(config.Read("font", "chat"));
+
             //его появление на экране
             gridok.Children.Add(chat);
-                              
+
             //Расположение деревянного ящика
-            Grid.SetColumn(woodenbox_obj, 3);
-            Grid.SetColumnSpan(woodenbox_obj, 1);
-            Grid.SetRow(woodenbox_obj, 4);
-            Grid.SetRowSpan(woodenbox_obj, 4);
-                      
+            Grid.SetColumn(woodenbox_obj, Convert.ToInt32(config.Read("cr_position", "woodenbox_obj").ToString().Split(',')[0]));
+            Grid.SetColumnSpan(woodenbox_obj, Convert.ToInt32(config.Read("cr_span", "woodenbox_obj").ToString().Split(',')[0]));
+            Grid.SetRow(woodenbox_obj, Convert.ToInt32(config.Read("cr_position", "woodenbox_obj").ToString().Split(',')[1]));
+            Grid.SetRowSpan(woodenbox_obj, Convert.ToInt32(config.Read("cr_span", "woodenbox_obj").ToString().Split(',')[1]));
+            woodenbox_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "woodenbox_obj")}", UriKind.RelativeOrAbsolute));
+
             Player.general = player_obj; //Присваеваем тело игрока (его изображение) к классу Player
             Player.weapon = weapon_obj; //Присваеваем изображение орудия к классу игрока
             Player.weapon_table = weapon_table; //Присваеваем табло счётика БП к игроку (чтоб был виден классу weapon)
-           
-            
+
+
             bot.general = player_npc_obj;
             bot.chat = chat;
-           
+
 
             //Расположение кнопки "Начать игру" в главном меню
-            Grid.SetColumn(play, 1);
-            Grid.SetRow(play, 4);
+            Grid.SetColumn(play, Convert.ToInt32(config.Read("cr_position", "play").ToString().Split(',')[0]));
+            Grid.SetRow(play, Convert.ToInt32(config.Read("cr_position", "play").ToString().Split(',')[1]));
+            play.Content = config.Read("content", "play");
             //её создание
-            gridok.Children.Add(play);         
+            gridok.Children.Add(play);
             play.Click += Play_Click; //Событие клика по ней
 
             //Пистолет (Кольт M1911) 
-            colt_45.Name = "Colt .45"; //Название оружия
-            colt_45.cartridge_name = ".45 ACP"; //калибр боеприпасов к нему
+            colt_45.Name = config.Read("name", "colt_45"); //Название оружия
+            colt_45.cartridge_name = config.Read("cartridge_name", "colt_45"); //калибр боеприпасов к нему
             //Скин оружия
             colt_45.Skin = new BitmapImage[3] { new BitmapImage(new Uri("pack://application:,,,/weapons/colt_45.png")), new BitmapImage(new Uri("pack://application:,,,/weapons/colt_45_fire.png")), new BitmapImage(new Uri("pack://application:,,,/weapons/colt_45.png")) };
             //Звук выстрела
-            colt_45.sound = new Uri($@"{System.IO.Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}weapons\sounds\colt1911_fire.ogg");
-            colt_45.in_magazine = 10; //Вместимость магазина
-            colt_45.in_magazine_count = 0; //Кол-во "маслят" в магазе
-            colt_45.cartridge_count = 30; //Кол-во боеприпасов к оружию
+            colt_45.sound = new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}{config.Read("sound", "colt_45")}");
+            colt_45.in_magazine = Convert.ToInt32(config.Read("in_magazine", "colt_45")); //Вместимость магазина
+            colt_45.in_magazine_count = Convert.ToInt32(config.Read("in_magazine_count", "colt_45")); //Кол-во "маслят" в магазе
+            colt_45.cartridge_count = Convert.ToInt32(config.Read("cartridge_count", "colt_45")); //Кол-во боеприпасов к оружию
 
             //Винтовка (Ремингтон M40A1)
-            m40a1.Name = "Remington M40A1";
-            m40a1.cartridge_name = "7,62x51 NATO";
-            m40a1.Skin = new BitmapImage[1] { new BitmapImage(new Uri("pack://application:,,,/weapons/m40a1.png")) };
-            m40a1.sound = new Uri($@"{System.IO.Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}weapons\sounds\r700_fire.ogg");
-            m40a1.in_magazine = 5;
-            m40a1.in_magazine_count = 0;
-            m40a1.cartridge_count = 15;
+            m40a1.Name = config.Read("name", "m40a1");
+            m40a1.cartridge_name = config.Read("cartridge_name", "m40a1");
+            m40a1.Skin = new BitmapImage[1] { new BitmapImage(new Uri("weapons/m40a1.png", UriKind.RelativeOrAbsolute)) };          
+            m40a1.sound = new Uri($@"{System.IO.Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}{config.Read("sound", "m40a1")}");
+            m40a1.in_magazine = Convert.ToInt32(config.Read("in_magazine", "m40a1"));
+            m40a1.in_magazine_count = Convert.ToInt32(config.Read("in_magazine_count", "m40a1"));
+            m40a1.cartridge_count = Convert.ToInt32(config.Read("cartridge_count", "m40a1"));
 
             this.KeyDown += Dotnet_KeyDown; //Присваевыем управление игре
-
-            chat.Content += "WPF__Engine v0.2";
+           
 
 using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}user.cfg", System.Text.Encoding.Default))
             {
@@ -170,9 +176,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
         Button console_button = new Button(); //Кнопка исполнения команды консоли
 
         //weapon
-
-        public Weapon colt_45 = new Weapon();
-        public Weapon m40a1 = new Weapon();
+        
 
         public async void Play_Click(object sender, RoutedEventArgs e)
         {
@@ -407,11 +411,11 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
             
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_walking_1.png")); 
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/pixil-frame-0.png"));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
             await Task.Delay(5);
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_walking_2.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/pixil-frame-0.png"));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
         }       
     }
     class NPC : Player
@@ -433,11 +437,11 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
 
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_armored_walking_1.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_armored.png"));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player_npc")}", UriKind.RelativeOrAbsolute));
             await Task.Delay(5);
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_armored_walking_2.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_armored.png"));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player_npc")}", UriKind.RelativeOrAbsolute));
         }
 
     }
@@ -488,9 +492,9 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                 await Task.Delay(50);
             }
         }
-    }
-   
+   }
 }
+
 
   
 
