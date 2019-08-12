@@ -193,7 +193,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
             public async void PlayCommand_Click(object sender, RoutedEventArgs e)
         {
             chat.Content += "\n" + console.Text; //Добовляем сообщение на панель сообщение с консоли
-            string user_command = console.Text.Split();
+            string[] user_command = console.Text.Split();
             switch (console.Text)
             {
                                  
