@@ -193,6 +193,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
             public async void PlayCommand_Click(object sender, RoutedEventArgs e)
         {
             chat.Content += "\n" + console.Text; //Добовляем сообщение на панель сообщение с консоли
+            string user_command = console.Text.Split();
             switch (console.Text)
             {
                                  
@@ -212,22 +213,27 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                 case "location":
                     chat.Content += $"\nLocation: {location}"; //Сообщение о смене локации
                     break;
-                case "fullscreen on":
+                case "fullscreen":
+                    switch(user_command[0]){
+                    case "on":
                     this.WindowStyle = WindowStyle.None;
-                    this.WindowState = WindowState.Maximized;     
+                    this.WindowState = WindowState.Maximized; 
                     break;
-                case "fullscreen off":
-                    this.WindowStyle = WindowStyle.SingleBorderWindow;
-                    this.WindowState = WindowState.Normal;
+                    case "off":
+                    this.WindowStyle = WindowStyle.None;
+                    this.WindowState = WindowState.Normal; 
                     break;
+                    }
+                    
+                    break;
+                
                 
             }
             console.Clear();
             gridok.Children.Remove(console);
             gridok.Children.Remove(console_button);
         }
-
-        public async void Dotnet_KeyDown(object sender, KeyEventArgs e)
+public async void Dotnet_KeyDown(object sender, KeyEventArgs e)
         {
             //Будем поворачивать игрока с его орудием, когда будет нужно
             ScaleTransform flipTrans = new ScaleTransform();
@@ -271,32 +277,21 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                         bot.player_flip = -1;
                         //Пересоздаём табло
                         gridok.Children.Remove(weapon_table); 
-                        gridok.Children.Add(weapon_table);
-                        bool walk = true;
-                        bot.Say("Здраствуй, брат");
-                                                                        
-                        while (walk)
+                        gridok.Children.Add(weapon_table);                       
+                        bot.Say("Здраствуй, брат!\nЕсли ты хочешь\nвыжить в этой зоне\nтебе необходима\nбоевая подготовка\nНу как берёшся?");
+                        while (true)
                         {
                             await Task.Delay(1);
-                            bot.Walking();
-                            if (chat.Content.ToString().Contains("Успокойся"))
+                            if (chat.Content.ToString().Contains("да") || chat.Content.ToString().Contains("OK"))
                             {
-                                bot.Say("Хорошо");
+                                bot.Say("Тогда держи ствол и стрельни\nв этот ящик");
+                                Player.weapons[1] = colt_45;
+                                Grid.SetRow(woodenbox_obj, 1);
                                 break;
-                            }
-                        }
-                        
 
-                    }
-                    if (Canvas.GetLeft(Player.general) == -5 && location != "level")
-                    { //Переход обратно
-                        location = "level";
-                       
-                        gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri(@"pack://application:,,,/level.png")));
-                        Canvas.SetLeft(Player.general, 650);
-                        count = 650;
-                        gridok.Children.Remove(woodenbox_obj);
-                        gridok.Children.Remove(player_npc);
+                            };
+                        } 
+                        
                     }
                     break;
 
@@ -310,7 +305,18 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                     Canvas.SetLeft(Player.general, count);
 
                     Canvas.SetLeft(Player.weapon, count - 41);
-                    
+                    if (Canvas.GetLeft(Player.general) == -5 && location != "level")
+                    { //Переход обратно
+                        location = "level";
+
+                        gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri(@"pack://application:,,,/level.png")));
+                        console.Text += "clear";
+                        PlayCommand_Click(null, null);
+                        Canvas.SetLeft(Player.general, 650);
+                        count = 650;
+                        gridok.Children.Remove(woodenbox_obj);
+                        gridok.Children.Remove(player_npc);
+                    }                   
                     break;
 
                 case Key.Space: //Прыжок
@@ -322,10 +328,12 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                         Canvas.SetTop(Player.general, jump_count);
 
                         Canvas.SetTop(Player.weapon, jump_count + 194);
+                        Canvas.SetTop(bullet_obj, jump_count + 194);
                         jump_count += 50;
                         Canvas.SetTop(Player.general, jump_count);
 
                         Canvas.SetTop(Player.weapon, jump_count + 194);
+                        Canvas.SetTop(bullet_obj, jump_count + 194);
 
                         for (int i = 0; i < 40; i++) //Анимация падения
                         {
@@ -334,6 +342,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                             Canvas.SetTop(Player.general, jump_count);
 
                             Canvas.SetTop(Player.weapon, jump_count + 70);
+                            Canvas.SetTop(bullet_obj, jump_count + 70);
                         }
 
                         jump_count = 0;
@@ -345,17 +354,26 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                     break;
 
                 case Key.D2: //Клавиша "2" (переключение на пистолет)
-                    flipTrans.ScaleX = Player.player_flip;
-                    Player.player_weapon = colt_45; //Оружие игрока - пистолет
-                    Player.weapon.Source = Player.player_weapon.Skin[0]; //его изображение
+                    flipTrans.ScaleX = Player.player_flip;                   
+                    
+                    Player.player_weapon = Player.weapons[1]; //Оружие игрока - пистолет
+                    Player.weapon.Source = Player.player_weapon.Skin[0]; //его изображение                  
                     //Отображение счётика БП для данного орудия
-                    weapon_table.Content = $"{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}"; 
+                    weapon_table.Content = $"{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
+                    if (Player.weapon.Source == null)
+                    {
+                        weapon_table.Content = "";
+                    }
                     break;
                 case Key.D1:  //Клавиша "2" (переключение на винтовку)
                     flipTrans.ScaleX = Player.player_flip;
-                    Player.player_weapon = m40a1;
-                    Player.weapon.Source = Player.player_weapon.Skin[0];
+                    Player.player_weapon = Player.weapons[0];
+                    Player.weapon.Source = Player.player_weapon.Skin[0];                 
                     weapon_table.Content = $"{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
+                    if (Player.weapon.Source == null)
+                    {
+                        weapon_table.Content = "";
+                    }
                     break;
                 case Key.Back: //Клавиша "Backspace" (оружие убрал!)
                     flipTrans.ScaleX = Player.player_flip;
@@ -375,9 +393,17 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                             player.Children.Add(bullet_obj); //Спавн маслины                        
                                 for (int i = 0; i < 5000; i += 500) //её полёт (пока только в одну сторону)
                                 {
-                                    await Task.Delay(1); //Прошла типа одна секунда                         
-                                    Canvas.SetLeft(bullet_obj, count + 82 + i); //И быстро полетела (кто не поймал - я не виноват)
+                                if(i > 1000)
+                                {
+                                    gridok.Children.Remove(woodenbox_obj);
+                                    bot.Say("Ого! Держи патроны");                                  
+                                    colt_45.cartridge_count += 20;
+                                    break;
                                 }
+                                    await Task.Delay(1); //Прошла типа одна секунда                         
+                                    Canvas.SetLeft(bullet_obj, count + 82 + i); //И быстро полетела (кто не поймал - я не виноват)                                  
+                                }
+                                
                             player.Children.Remove(bullet_obj); //Приземлилась
                         }                                              
                     }
@@ -399,6 +425,7 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
     }
        class Player 
     {
+        public static List<Weapon> weapons = new List<Weapon>() { new Weapon() { Skin = new BitmapImage[1] { null } }, new Weapon() { Skin = new BitmapImage[1] { null } } };
         public static Image general; //Тело игрока
         public static Image weapon; //его орудие (изображение)
         public static Weapon player_weapon; //Оружие игрока
@@ -492,8 +519,10 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                 await Task.Delay(50);
             }
         }
-   }
+    }
+   
 }
+        
 
 
   
