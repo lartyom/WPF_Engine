@@ -131,7 +131,6 @@
     <Content Include="BugTrapN-x64.dll" />
     <Resource Include="level.png" />
     <Resource Include="level_2.png" />
-    <Resource Include="weapons\bullet.png" />
     <Resource Include="player_skin\player_armored.png" />
     <Resource Include="player_skin\player_walking\player_armored_walking_1.png" />
     <Resource Include="player_skin\player_walking\player_armored_walking_2.png" />
