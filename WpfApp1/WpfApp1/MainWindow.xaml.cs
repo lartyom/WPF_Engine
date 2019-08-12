@@ -214,18 +214,19 @@ using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Rep
                     chat.Content += $"\nLocation: {location}"; //Сообщение о смене локации
                     break;
                 case "fullscreen":
-                    switch(user_command[0]){
-                    case "on":
-                    this.WindowStyle = WindowStyle.None;
-                    this.WindowState = WindowState.Maximized; 
-                    break;
-                    case "off":
-                    this.WindowStyle = WindowStyle.None;
-                    this.WindowState = WindowState.Normal; 
-                    break;
+                    switch (user_command[1])
+                    {
+                        case "on":
+                            this.WindowStyle = WindowStyle.None;
+                            this.WindowState = WindowState.Maximized;
+                            break;
+                        case "off":
+                            this.WindowStyle = WindowStyle.SingleBorderWindow;
+                            this.WindowState = WindowState.Normal;
+                            break;
                     }
-                    
-                    break;
+                   
+                    break;             
                 
                 
             }
