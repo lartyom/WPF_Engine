@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,6 +69,7 @@ namespace WpfApp1
             player_obj.Width = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[1]);       
             Canvas.SetTop(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[0]));
             Canvas.SetLeft(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[1]));
+            Player.health = Convert.ToInt32(config.Read("health", "player"));
             //его "спавн"
             player.Children.Add(player_obj);
             
@@ -98,6 +99,7 @@ namespace WpfApp1
             Grid.SetRowSpan(chat, Convert.ToInt32(config.Read("cr_span", "chat").ToString().Split(',')[1]));
             chat.Content = config.Read("content", "chat");
             chat.FontFamily = new FontFamily(config.Read("font", "chat"));
+            chat.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("foreground", "chat")));
             //chat.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("foreground", "chat")));
             //chat.Background = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("background", "chat")));
 
@@ -118,7 +120,7 @@ namespace WpfApp1
             Grid.SetRow(authors, Convert.ToInt32(config.Read("cr_position", "authors").ToString().Split(',')[1]));
             
             authors.Content = config.Read("content", "authors");
-            
+          
             //её создание
             gridok.Children.Add(play);
             gridok.Children.Add(authors);
@@ -284,25 +286,26 @@ namespace WpfApp1
         //}
 
             public async void Play_Click(object sender, RoutedEventArgs e)
-        {
-            gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level.png"))); //Меняем бэкграунд на игровой фон
-
+        {          
             //Спавним игрока           
             gridok.Children.Add(player);
             
             gridok.Children.Remove(play);
             gridok.Children.Remove(authors);//Удаляем кнопку
             gridok.Children.Add(weapon_table); //Отоброжаем счётик БП    
-            location = "level";
-            
+            location = "start";
+            LoadConfig($"maps/start.cfg");
+            Player.player_weapon = weapons[0];
+
         }
         public async void Authors_Click(object sender, RoutedEventArgs e)
         {
             location = "authors";
+            LoadConfig($"maps/{location}.cfg");
             gridok.Children.Remove(play);
             gridok.Children.Remove(authors);
             string[,] titles = new string[3, 2] { { "Программирование: ","Артём Лазарев" }, { "Графика: ", "Артём Лазарев" }, { "Идея: ", "Артём Лазарев" } };
-            gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level_2.png"))); //Меняем бэкграунд на игровой фон
+             
             Grid.SetColumn(authors_title, 1);
             Grid.SetRow(authors_title, 3);
             Grid.SetColumnSpan(authors_title, 3);
@@ -386,7 +389,7 @@ namespace WpfApp1
                         case "NPCs":
                             gridok.Children.Add(NPCs[Int32.Parse(user_command[2])].mo_general);
                             NPCs[Int32.Parse(user_command[2])].weapon.Source = NPCs[Int32.Parse(user_command[2])].player_weapon.Skin[0];
-                            NPCs[Int32.Parse(user_command[2])].Flip(-1);                          
+                            NPCs[Int32.Parse(user_command[2])].Flip(Int32.Parse(user_command[3]));                          
                             break;
                     }
                     break;
@@ -443,6 +446,26 @@ namespace WpfApp1
                             break;
                     }
                     break;
+                case "cartridge":
+                    switch (user_command[1])
+                    {
+                        case "pistol":
+                            Player.weapons[1].cartridge_count += Player.player_weapon.in_magazine;
+                            break;
+                        case "rifle":
+                            Player.weapons[0].cartridge_count += Player.player_weapon.in_magazine;
+                            break;
+                    }
+                    break;
+                case "chat":
+                     switch (user_command[1])
+                    {
+                        case "set_color":
+                            chat.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString(user_command[2]);
+                            break;
+                        
+                    }
+                    break;
 
                     // вызываем функцию и получаем результат                  
 
@@ -478,7 +501,7 @@ namespace WpfApp1
                     
                   
                     //Cмена локаций
-                    if (Canvas.GetLeft(Player.general) == 650 && location != "level_2")
+                    if (Canvas.GetLeft(Player.general) == 650 && location == "start")
                     { //Переход на вторую локацию с "бункером"
 
                         location = "level_2"; //Меняем локацию    
@@ -486,20 +509,22 @@ namespace WpfApp1
                         LoadConfig($"maps/{location}.cfg");
                         
                         count = 0; //Обнуляем кол-во хода
-                        if (!NPCs[0].alive)
+                        
+                        foreach (var i in NPCs)
                         {
-                            RotateTransform rotate = new RotateTransform(90);
-                            NPCs[0].general.RenderTransform = rotate;
-                            NPCs[0].walk_speed = 0;
+                            if (!i.alive)
+                            {
+                                RotateTransform rotate = new RotateTransform(90);
+                                i.general.RenderTransform = rotate;
+                                i.walk_speed = 0;
+                            }
                         }
-                        NPCs[0].player_weapon.FireNPC(NPCs[0]);
-                        for (int i = 0; i < 17; i++)
-                        {
-                            
-                            await Task.Delay(500);
-                            NPCs[0].player_weapon.FireNPC(NPCs[0]);
-                           
-                        }
+
+                        //else
+                        //{
+                        //    NPCs[0].player_weapon.FireNPC(NPCs[0]);
+                        //}
+
                         //NPCs[0].Walk(-1, 28);
                         //await Task.Delay(1000);
                         //NPCs[0].Walk(1, 28);
@@ -511,6 +536,13 @@ namespace WpfApp1
                         //Пересоздаём табло
                         gridok.Children.Remove(weapon_table);
                         gridok.Children.Add(weapon_table);
+                        NPCs[0].Say("Рад что ты жив.\nНужно добраться до базы\nкак можно скорее.\nДержи два пистолетных магазина");
+                        NPCs[0].Walk(1, 75);
+
+                        //console.Text += "spawn NPCs 1";
+                        //PlayCommand_Click(null, null);
+                        //NPCs[1].Fire(20, NPCs[1]);
+
                         //NPCs[0].Say("Здраствуй, брат!\nЕсли ты хочешь\nвыжить в этой зоне\nтебе необходима\nбоевая подготовка\nНу как берёшся?");
                         //while (true)
                         //{
@@ -527,6 +559,29 @@ namespace WpfApp1
                         //} 
 
                     }
+                   
+                        if (Canvas.GetLeft(Player.general) == 650 && location == "level_2")
+                    {                                                
+                        location = "level";
+                        LoadConfig($"maps/{location}.cfg");
+                        console.Text += "clear";
+                        PlayCommand_Click(null, null);
+                        NPCs[0].alive = false;
+                        NPCs[0].weapon.Source = null;
+                        foreach (var i in NPCs)
+                        {
+                            if (!i.alive)
+                            {
+                                RotateTransform rotate = new RotateTransform(90);
+                                i.general.RenderTransform = rotate;
+                                i.walk_speed = 0;
+                            }
+                        }
+                        NPCs[1].Walk(1, 50);
+                        NPCs[1].Fire(21, NPCs[1]);
+
+                        break;
+                    }
                     break;
 
                 case Key.A: //Движение налево
@@ -539,18 +594,18 @@ namespace WpfApp1
                     Canvas.SetLeft(Player.general, count);
 
                     Canvas.SetLeft(Player.weapon, count - 41);
-                    if (Canvas.GetLeft(Player.general) == -5 && location != "level")
-                    { //Переход обратно
-                        location = "level";
-                        LoadConfig($"maps/{location}.cfg");
-                        gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level.png")));
-                        console.Text += "clear";
-                        PlayCommand_Click(null, null);
-                        
-                        
+                    //if (Canvas.GetLeft(Player.general) == -5 && location != "level")
+                    //{ //Переход обратно
+                    //    location = "level";
+                    //    LoadConfig($"maps/{location}.cfg");
+                    //    gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level.png")));
+                    //    console.Text += "clear";
+                    //    PlayCommand_Click(null, null);
 
 
-                    }                   
+
+
+                    //}
                     break;
 
                 case Key.Space: //Прыжок
@@ -628,14 +683,22 @@ namespace WpfApp1
                             {
                                 if (Canvas.GetLeft(i.general) > Canvas.GetLeft(Player.general) && Player.player_flip == 1 || Canvas.GetLeft(i.general) < Canvas.GetLeft(Player.general) && Player.player_flip == -1)
                                 {
-                                    i.health -= Player.player_weapon.damage;
-                                    if(i.health <= 0)
-                                    {
-                                        RotateTransform rotate = new RotateTransform(90);
-                                        i.general.RenderTransform = rotate;
-                                        i.walk_speed = 0;
-                                        i.alive = false;
-                                    }
+                                  
+                                        i.health -= Player.player_weapon.damage;
+
+                                        if (i == NPCs[0])
+                                        {
+                                            i.Fire(1, i);
+                                        }
+
+                                        if (i.health <= 0)
+                                        {
+                                            RotateTransform rotate = new RotateTransform(90);
+                                            i.general.RenderTransform = rotate;
+                                            i.walk_speed = 0;
+                                            i.alive = false;
+                                        }
+                                    
                                 }
                             }
                             //try { 
@@ -660,17 +723,22 @@ namespace WpfApp1
                         }                                              
                     }
                     break;
+                    
                 case Key.OemTilde:
-                    gridok.Children.Add(console); //Отображаем консольку
-                    gridok.Children.Add(console_button); //Кнопку исполнения
-                    Grid.SetColumnSpan(console, 5); //Расположение консоли
-                    Grid.SetColumn(console_button, 6); //Расположение её кнопки
-                    console_button.Content = "Play"; //Играть!
-                    console_button.Click += PlayCommand_Click; //Подписываем на исполнение
-                    console.Background = Brushes.Black; //Делаем брутально-чёрной
-                    console.FontFamily = Fonts.SystemFontFamilies.First(x => x.ToString() == "Consolas"); //Харатерно консольный шрифт
-                    console.Foreground = Brushes.White; 
-                    console.Focus();  //Cтавим её на фокус                 
+                    try
+                    {
+                        gridok.Children.Add(console); //Отображаем консольку
+                        gridok.Children.Add(console_button); //Кнопку исполнения
+                        Grid.SetColumnSpan(console, 5); //Расположение консоли
+                        Grid.SetColumn(console_button, 6); //Расположение её кнопки
+                        console_button.Content = "Play"; //Играть!
+                        console_button.Click += PlayCommand_Click; //Подписываем на исполнение
+                        console.Background = Brushes.Black; //Делаем брутально-чёрной
+                        console.FontFamily = Fonts.SystemFontFamilies.First(x => x.ToString() == "Consolas"); //Харатерно консольный шрифт
+                        console.Foreground = Brushes.White;
+                        console.Focus();  //Cтавим её на фокус     
+                    }
+                    catch { };
                     break;
                 case Key.Escape:
                     if (location == "authors")
@@ -678,7 +746,8 @@ namespace WpfApp1
                         gridok.Children.Remove(authors_title);
                         gridok.Children.Add(play);
                         gridok.Children.Add(authors);
-                        gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}Series.jpg")));
+                        //gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}Series.jpg")));
+                        LoadConfig("user.cfg");
                         break;
 
                     }
@@ -711,7 +780,7 @@ namespace WpfApp1
     {
         public static List<Weapon> weapons = new List<Weapon>() { new Weapon() { Skin = new BitmapImage[1] { null } }, new Weapon() { Skin = new BitmapImage[1] { null } } };
         public static Image general; //Тело игрока
-        public static int health = 150;
+        public static int health;
         public static bool alive = true;
         public static Image weapon; //его орудие (изображение)
         public static Weapon player_weapon; //Оружие игрока
@@ -732,7 +801,7 @@ namespace WpfApp1
         }        
        
     }
-    class NPC : Player
+    class NPC 
     {
         public Canvas mo_general;
         public Image general;
@@ -748,6 +817,19 @@ namespace WpfApp1
         {
             chat.Content += "\n" + text;
             
+        }
+        public async void Fire(int shots, NPC npc)
+        {
+            for (int i = 0; i < shots; i++)
+            {
+                if (alive == false)
+                {
+                    break;
+                }
+                await Task.Delay(500);
+                player_weapon.FireNPC(npc);
+
+            }
         }
         public async void Walking() //Анимация хождения (смена картинок через определёное время)
         {
@@ -882,8 +964,7 @@ namespace WpfApp1
                     if (Canvas.GetLeft(Player.general) > Canvas.GetLeft(npc.general) && npc.player_flip == 1 || Canvas.GetLeft(Player.general) < Canvas.GetLeft(npc.general) && npc.player_flip == -1)
                     {
                         Player.health -= npc.player_weapon.damage;
-                        Player.weapon_table.Content = $"Health: {Player.health}\n{cartridge_name}\n--------------\n{in_magazine_count} / {cartridge_count}";
-                        Fire_animation();
+                        FireNPC_animation(npc);
                         if (Player.health <= 0)
                         {
                             RotateTransform rotate = new RotateTransform(90);
@@ -917,8 +998,6 @@ namespace WpfApp1
     }
    
 }
-        
-
 
   
 

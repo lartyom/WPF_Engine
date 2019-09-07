@@ -2,11 +2,9 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-
-// Change this to match your program normal namespace
 namespace WpfApp1
 {
-    class IniFile   // revision 11
+    class IniFile
     {
         string Path;
         string EXE = Assembly.GetExecutingAssembly().GetName().Name;
