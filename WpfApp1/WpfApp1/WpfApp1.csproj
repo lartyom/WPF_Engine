@@ -107,40 +107,9 @@
     <Resource Include="Series.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="player_skin\player_walking\pixil-frame-2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="player_skin\pixil-frame-0.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="player_skin\player_walking\player_walking_2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="player_skin\player_walking\player_walking_1.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="objects\wooden_box.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="weapons\colt_45.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="weapons\colt_45_fire.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="weapons\m40a1.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="bg.png" />
     <Content Include="BugTrapN-x64.dll" />
-    <Resource Include="level.png" />
-    <Resource Include="level_2.png" />
-    <Resource Include="player_skin\player_armored.png" />
-    <Resource Include="player_skin\player_walking\player_armored_walking_1.png" />
-    <Resource Include="player_skin\player_walking\player_armored_walking_2.png" />
-    <Resource Include="objects\bullet.png" />
     <Resource Include="pixil-frame-0.ico" />
-    <Content Include="weapons\sounds\colt1911_fire.mp3" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Windows.Threading;
 using System.IO;
 using System.Text.RegularExpressions;
+using WpfApp1;
 
 namespace WpfApp1
 {
@@ -28,8 +29,8 @@ namespace WpfApp1
 
     public partial class MainWindow : Window
     {
-        
-        
+
+
         //Деревянный ящик
         //Image woodenbox_obj = new Image { Name = "woodbox", Margin = new Thickness(0, 0, 0, -14) };
         //Игрок
@@ -38,7 +39,7 @@ namespace WpfApp1
         //NPC     
 
         //Кнопка "Начать игру" в главном меню 
-        Button play = new Button() { Name = "play", Height=45 };
+        Button play = new Button() { Name = "play", Height = 45 };
         Button authors = new Button { Name = "authors", Height = 45 };
         //Счётик боеприпасов для оружия
         Label weapon_table = new Label { Name = "weapon_table" };
@@ -55,29 +56,31 @@ namespace WpfApp1
         List<Weapon> weapons = new List<Weapon>();
         List<Image> NPC_weapons = new List<Image>();
         List<NPC> NPCs = new List<NPC>();
+        Key[] keyboard = new Key[9];
         //public Weapon colt_45 = new Weapon();
         //public Weapon m40a1 = new Weapon();
+        //47, 44, 18, 36, 35, 2, 6, 146, 13
+        //Key.D, Key.A, Key.Space, Key.D2, Key.D1, Key.Back, Key.Enter, Key.OemTilde, Key.Escape 
 
-        
 
         public MainWindow()
         {
             InitializeComponent();
-            
-            IniFile config = new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini");
+
+            IniFile config = new IniFile($"{Directory.GetCurrentDirectory()}\\System.ini");
             player_obj.Height = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[0]);
-            player_obj.Width = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[1]);       
+            player_obj.Width = Convert.ToInt32(config.Read("size", "player").ToString().Split(',')[1]);
             Canvas.SetTop(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[0]));
             Canvas.SetLeft(player_obj, Convert.ToInt32(config.Read("position", "player").ToString().Split(',')[1]));
             Player.health = Convert.ToInt32(config.Read("health", "player"));
             //его "спавн"
             player.Children.Add(player_obj);
-            
+
             //Оружие в руках игрока
             weapon_obj.Height = Convert.ToInt32(config.Read("size", "weapon_obj").ToString().Split(',')[0]);
             weapon_obj.Width = Convert.ToInt32(config.Read("size", "weapon_obj").ToString().Split(',')[1]);
             //его расположение
-            Canvas.SetTop(weapon_obj, Canvas.GetTop(player_obj)+ 65);
+            Canvas.SetTop(weapon_obj, Canvas.GetTop(player_obj) + 65);
             Canvas.SetLeft(weapon_obj, Canvas.GetLeft(player_obj) + 82);
 
             //его "cпавн"
@@ -91,9 +94,10 @@ namespace WpfApp1
             weapon_table.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("foreground", "weapon_table")));
             weapon_table.Background = (SolidColorBrush)new BrushConverter().ConvertFromString((config.Read("background", "weapon_table")));
 
-            Canvas.SetTop(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[0]));
-            Canvas.SetLeft(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[1]));
-            bullet_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "bullet_obj")}", UriKind.RelativeOrAbsolute));
+            //Canvas.SetTop(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[0]));
+            //Canvas.SetLeft(bullet_obj, Convert.ToInt32(config.Read("position", "bullet_obj").ToString().Split(',')[1]));
+            //bullet_obj.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", "bullet_obj")}", UriKind.RelativeOrAbsolute));
+
             //Расположение панели сообщений
             Grid.SetColumnSpan(chat, Convert.ToInt32(config.Read("cr_span", "chat").ToString().Split(',')[0]));
             Grid.SetRowSpan(chat, Convert.ToInt32(config.Read("cr_span", "chat").ToString().Split(',')[1]));
@@ -107,7 +111,7 @@ namespace WpfApp1
             gridok.Children.Add(chat);
 
             //Расположение деревянного ящика
-           
+
             Player.general = player_obj; //Присваеваем тело игрока (его изображение) к классу Player
             Player.weapon = weapon_obj; //Присваеваем изображение орудия к классу игрока
             Player.weapon_table = weapon_table; //Присваеваем табло счётика БП к игроку (чтоб был виден классу weapon)                      
@@ -118,9 +122,9 @@ namespace WpfApp1
 
             Grid.SetColumn(authors, Convert.ToInt32(config.Read("cr_position", "authors").ToString().Split(',')[0]));
             Grid.SetRow(authors, Convert.ToInt32(config.Read("cr_position", "authors").ToString().Split(',')[1]));
-            
+
             authors.Content = config.Read("content", "authors");
-          
+
             //её создание
             gridok.Children.Add(play);
             gridok.Children.Add(authors);
@@ -129,10 +133,10 @@ namespace WpfApp1
             this.KeyDown += Dotnet_KeyDown; //Присваевыем управление игре
 
             int[] counts = new int[3] { 0, 0, 0 };
-             
+
             LoadConfig("user.cfg");
-        
- using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini", System.Text.Encoding.Default))
+
+            using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory()}\\System.ini", System.Text.Encoding.Default))
             {
                 string line;
 
@@ -146,15 +150,15 @@ namespace WpfApp1
                     if (line.Contains("["))
                     {
                         string Class = config.Read("class", match[0].ToString());
-                        
+
                         switch (Class)
                         {
-                            
+
                             case "WEAPON":
                                 BitmapImage[] weapon_skin = new BitmapImage[config.Read("skin", match[0].ToString()).Split(',').Length];
                                 for (int i = 0; i < weapon_skin.Length; i++)
                                 {
-                                    weapon_skin[i] = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}{config.Read("skin", match[0].ToString()).Split(',')[i]}"));
+                                    weapon_skin[i] = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}\\{config.Read("skin", match[0].ToString()).Split(',')[i]}"));
                                 }
                                 weapons.Add(new Weapon()
                                 {
@@ -166,14 +170,14 @@ namespace WpfApp1
                                     in_magazine_count = Convert.ToInt32(config.Read("in_magazine_count", match[0].ToString())),
                                     cartridge_count = Convert.ToInt32(config.Read("cartridge_count", match[0].ToString())),
                                     damage = Convert.ToInt32(config.Read("damage", match[0].ToString()))
-                                    
+
                                 });
                                 break;
                             case "OBJECT":
                                 s_models.Add(new Image()
                                 {
                                     Name = match[0].ToString(),
-                                    Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", match[0].ToString())}")),
+                                    Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{config.Read("visual", match[0].ToString())}")),
 
                                 });
                                 Grid.SetColumn(s_models[counts[1]], Convert.ToInt32(config.Read("cr_position", match[0].ToString()).ToString().Split(',')[0]));
@@ -202,7 +206,7 @@ namespace WpfApp1
                                 NPC_models.Add(new Image()
                                 {
                                     Name = match[0].ToString(),
-                                    Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{config.Read("visual", match[0].ToString())}")),
+                                    Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{config.Read("visual", match[0].ToString())}")),
                                     Height = Convert.ToInt32(config.Read("size", match[0].ToString()).ToString().Split(',')[0]),
                                     Width = Convert.ToInt32(config.Read("size", match[0].ToString()).ToString().Split(',')[1])
 
@@ -234,30 +238,24 @@ namespace WpfApp1
 
                                 });
                                 NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].mo_general.Children.Add(NPC_weapons[counts[2]]);
-                                Canvas.SetTop(NPC_weapons[counts[2]], Canvas.GetTop(NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].general)+65);
-                                Canvas.SetLeft(NPC_weapons[counts[2]], Canvas.GetLeft(NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].general)+82);
+                                Canvas.SetTop(NPC_weapons[counts[2]], Canvas.GetTop(NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].general) + 65);
+                                Canvas.SetLeft(NPC_weapons[counts[2]], Canvas.GetLeft(NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].general) + 82);
                                 NPCs[Convert.ToInt32(config.Read("owner", match[0].ToString()))].weapon = NPC_weapons[counts[2]];
                                 counts[2] += 1;
                                 break;
-                             
                         }
                     }
-                    
-                    }
-                    
-
                 }
-            
-        }       
-       
+            }
+        }
 
-        string location = null; 
+        string location = null;
         int count = 0; //Кол-во хода
         int jump_count = 0; //Кол-во (высота) прыжка
         bool space_pressed = false; //Зажата ли Space
-        //bool shift_pressed = false;
+                                    //bool shift_pressed = false;
 
-       
+
         TextBox console = new TextBox(); //Консолька
         Button console_button = new Button(); //Кнопка исполнения команды консоли
 
@@ -285,16 +283,16 @@ namespace WpfApp1
 
         //}
 
-            public async void Play_Click(object sender, RoutedEventArgs e)
-        {          
+        public async void Play_Click(object sender, RoutedEventArgs e)
+        {
             //Спавним игрока           
             gridok.Children.Add(player);
-            
+
             gridok.Children.Remove(play);
             gridok.Children.Remove(authors);//Удаляем кнопку
             gridok.Children.Add(weapon_table); //Отоброжаем счётик БП    
             location = "start";
-            LoadConfig($"maps/start.cfg");
+            LoadConfig($"maps/{location}.cfg");
             Player.player_weapon = weapons[0];
 
         }
@@ -304,8 +302,8 @@ namespace WpfApp1
             LoadConfig($"maps/{location}.cfg");
             gridok.Children.Remove(play);
             gridok.Children.Remove(authors);
-            string[,] titles = new string[3, 2] { { "Программирование: ","Артём Лазарев" }, { "Графика: ", "Артём Лазарев" }, { "Идея: ", "Артём Лазарев" } };
-             
+            string[,] titles = new string[3, 2] { { "Программирование: ", "Артём Лазарев" }, { "Графика: ", "Артём Лазарев\nТекстуры оружия: игра Terraria\nЗвуки оружия: мобильное приложение Guns" }, { "Идея: ", "Артём Лазарев" } };
+
             Grid.SetColumn(authors_title, 1);
             Grid.SetRow(authors_title, 3);
             Grid.SetColumnSpan(authors_title, 3);
@@ -313,24 +311,24 @@ namespace WpfApp1
             gridok.Children.Add(authors_title);
             for (int i = 0; i < 3; i++)
             {
-                
+
                 await Task.Delay(1500);
-                authors_title.Content = titles[i, 0]+"\n\n"+ titles[i, 1];
-                for (double j = 1; j > 0; j-=0.1)
+                authors_title.Content = titles[i, 0] + "\n\n" + titles[i, 1];
+                for (double j = 1; j > 0; j -= 0.1)
                 {
                     await Task.Delay(500);
                     authors_title.Opacity = j;
-                    
+
                 }
 
             }
-                
-            
+
+
 
         }
         public void LoadConfig(string path)
         {
-            using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}{path}", System.Text.Encoding.Default))
+            using (StreamReader sr = new StreamReader($"{Directory.GetCurrentDirectory()}\\{path}", System.Text.Encoding.Default))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -348,10 +346,10 @@ namespace WpfApp1
             string[] user_command = console.Text.Split();
             switch (user_command[0])
             {
-                                 
+
                 case "clear": //Очищаем панель сообщений
                     chat.ClearValue(ContentProperty);
-                
+
                     break;
                 case "exit":
                     this.Close();
@@ -361,7 +359,7 @@ namespace WpfApp1
                     break;
                 case "help":
                     chat.Content += "\nstart - Начать игру\nexit - Выйти\nclear - очистить консоль";
-                        break;
+                    break;
                 case "location":
                     chat.Content += $"\nLocation: {location}"; //Сообщение о смене локации
                     break;
@@ -376,10 +374,10 @@ namespace WpfApp1
                             this.WindowStyle = WindowStyle.SingleBorderWindow;
                             this.WindowState = WindowState.Normal;
                             break;
-                    }  
-                     
+                    }
+
                     break;
-                
+
                 case "spawn":
                     switch (user_command[1])
                     {
@@ -389,7 +387,7 @@ namespace WpfApp1
                         case "NPCs":
                             gridok.Children.Add(NPCs[Int32.Parse(user_command[2])].mo_general);
                             NPCs[Int32.Parse(user_command[2])].weapon.Source = NPCs[Int32.Parse(user_command[2])].player_weapon.Skin[0];
-                            NPCs[Int32.Parse(user_command[2])].Flip(Int32.Parse(user_command[3]));                          
+                            NPCs[Int32.Parse(user_command[2])].Flip(Int32.Parse(user_command[3]));
                             break;
                     }
                     break;
@@ -405,7 +403,7 @@ namespace WpfApp1
                     }
                     break;
                 case "background":
-                    gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}{user_command[1]}")));
+                    gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}\\{user_command[1]}")));
                     break;
                 case "tp":
                     switch (user_command[1])
@@ -426,7 +424,7 @@ namespace WpfApp1
                     }
                     break;
                 case "slot_0":
-                    Player.weapons[0] = weapons[Int32.Parse(user_command[1])];                    
+                    Player.weapons[0] = weapons[Int32.Parse(user_command[1])];
                     break;
                 case "slot_1":
                     Player.weapons[1] = weapons[Int32.Parse(user_command[1])];
@@ -438,8 +436,8 @@ namespace WpfApp1
                     switch (user_command[1])
                     {
                         case "on":
-                            if(!gridok.Children.Contains(weapon_table))
-                            gridok.Children.Add(weapon_table);
+                            if (!gridok.Children.Contains(weapon_table))
+                                gridok.Children.Add(weapon_table);
                             break;
                         case "off":
                             gridok.Children.Remove(weapon_table);
@@ -458,13 +456,19 @@ namespace WpfApp1
                     }
                     break;
                 case "chat":
-                     switch (user_command[1])
+                    switch (user_command[1])
                     {
                         case "set_color":
                             chat.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString(user_command[2]);
                             break;
-                        
+
                     }
+                    break;
+                case "exec":
+                    LoadConfig(user_command[1]);
+                    break;
+                case "bind":
+                    keyboard[Int32.Parse(user_command[1])] = (Key)Int32.Parse(user_command[2]);
                     break;
 
                     // вызываем функцию и получаем результат                  
@@ -478,278 +482,290 @@ namespace WpfApp1
         public async void Dotnet_KeyDown(object sender, KeyEventArgs e)
         {
             //Будем поворачивать игрока с его орудием, когда будет нужно
-            ScaleTransform flipTrans = new ScaleTransform();         
+            ScaleTransform flipTrans = new ScaleTransform();
             Player.general.RenderTransformOrigin = new Point(0.5, 0.5);
-            Player.weapon.RenderTransformOrigin = new Point(0.5, 0.5);         
+            Player.weapon.RenderTransformOrigin = new Point(0.5, 0.5);
             Player.general.RenderTransform = flipTrans;
-            Player.weapon.RenderTransform = flipTrans;           
-            flipTrans.ScaleX = Player.player_flip;          
+            Player.weapon.RenderTransform = flipTrans;
+            flipTrans.ScaleX = Player.player_flip;
 
 
-            switch (e.Key)
-            {
-                case Key.D: //Движение направо
-                    //Поворачиваем игрока направо
-                    flipTrans.ScaleX = 1;
-                    Player.player_flip = 1;
-                    //RotateTransform rotate = new RotateTransform(70);
-                    //Player.weapon.RenderTransform = rotate;
-                    Player.Walking(); //Запуск анимации хождения
-                    count += Player.walk_speed; //Приписываем кол-ву хода скорсть хождения игрока
-                    Canvas.SetLeft(Player.weapon, count + 82); //Движение орудия
-                    Canvas.SetLeft(Player.general, count); //Движение игрока                  
-                    
-                  
-                    //Cмена локаций
-                    if (Canvas.GetLeft(Player.general) == 650 && location == "start")
-                    { //Переход на вторую локацию с "бункером"
 
-                        location = "level_2"; //Меняем локацию    
 
-                        LoadConfig($"maps/{location}.cfg");
-                        
-                        count = 0; //Обнуляем кол-во хода
-                        
-                        foreach (var i in NPCs)
+            if (e.Key == keyboard[0]) { //Движение направо
+                                                   //Поворачиваем игрока направо
+                flipTrans.ScaleX = 1;
+                Player.player_flip = 1;
+                //RotateTransform rotate = new RotateTransform(70);
+                //Player.weapon.RenderTransform = rotate;
+                Player.Walking(); //Запуск анимации хождения
+                count += Player.walk_speed; //Приписываем кол-ву хода скорсть хождения игрока
+                Canvas.SetLeft(Player.weapon, count + 82); //Движение орудия
+                Canvas.SetLeft(Player.general, count); //Движение игрока                  
+
+
+                //Cмена локаций
+                if (Canvas.GetLeft(Player.general) == 650 && location == "start")
+                { //Переход на вторую локацию с "бункером"
+
+                    location = "level_2"; //Меняем локацию    
+
+                    LoadConfig($"maps/{location}.cfg");
+
+                    count = 0; //Обнуляем кол-во хода
+
+                    foreach (var i in NPCs)
+                    {
+                        if (!i.alive)
                         {
-                            if (!i.alive)
-                            {
-                                RotateTransform rotate = new RotateTransform(90);
-                                i.general.RenderTransform = rotate;
-                                i.walk_speed = 0;
-                            }
+                            RotateTransform rotate = new RotateTransform(90);
+                            i.general.RenderTransform = rotate;
+                            i.walk_speed = 0;
                         }
-
-                        //else
-                        //{
-                        //    NPCs[0].player_weapon.FireNPC(NPCs[0]);
-                        //}
-
-                        //NPCs[0].Walk(-1, 28);
-                        //await Task.Delay(1000);
-                        //NPCs[0].Walk(1, 28);
-
-
-
-                        //flipTrans.ScaleX = -1;
-                        //NPCs[1].player_flip = -1;
-                        //Пересоздаём табло
-                        gridok.Children.Remove(weapon_table);
-                        gridok.Children.Add(weapon_table);
-                        NPCs[0].Say("Рад что ты жив.\nНужно добраться до базы\nкак можно скорее.\nДержи два пистолетных магазина");
-                        NPCs[0].Walk(1, 75);
-
-                        //console.Text += "spawn NPCs 1";
-                        //PlayCommand_Click(null, null);
-                        //NPCs[1].Fire(20, NPCs[1]);
-
-                        //NPCs[0].Say("Здраствуй, брат!\nЕсли ты хочешь\nвыжить в этой зоне\nтебе необходима\nбоевая подготовка\nНу как берёшся?");
-                        //while (true)
-                        //{
-                        //    await Task.Delay(1);
-                        //    if (chat.Content.ToString().Contains("да") || chat.Content.ToString().Contains("OK"))
-                        //    {
-                        //        NPCs[1].Say("Тогда держи ствол и стрельни\nв этот ящик");                               
-                        //        Player.weapons[1] = weapons[0];
-                        //        Player.weapons[0] = weapons[2];
-                        //        Grid.SetRow(s_models[0], 1);
-                        //        break;
-
-                        //    };
-                        //} 
-
                     }
-                   
-                        if (Canvas.GetLeft(Player.general) == 650 && location == "level_2")
-                    {                                                
-                        location = "level";
-                        LoadConfig($"maps/{location}.cfg");
-                        console.Text += "clear";
-                        PlayCommand_Click(null, null);
-                        NPCs[0].alive = false;
-                        NPCs[0].weapon.Source = null;
-                        foreach (var i in NPCs)
-                        {
-                            if (!i.alive)
-                            {
-                                RotateTransform rotate = new RotateTransform(90);
-                                i.general.RenderTransform = rotate;
-                                i.walk_speed = 0;
-                            }
-                        }
-                        NPCs[1].Walk(1, 50);
-                        NPCs[1].Fire(21, NPCs[1]);
 
-                        break;
-                    }
-                    break;
-
-                case Key.A: //Движение налево
-
-                    flipTrans.ScaleX = -1;
-                    Player.player_flip = -1;
-                    Player.Walking();
-                    count -= Player.walk_speed;
-
-                    Canvas.SetLeft(Player.general, count);
-
-                    Canvas.SetLeft(Player.weapon, count - 41);
-                    //if (Canvas.GetLeft(Player.general) == -5 && location != "level")
-                    //{ //Переход обратно
-                    //    location = "level";
-                    //    LoadConfig($"maps/{location}.cfg");
-                    //    gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level.png")));
-                    //    console.Text += "clear";
-                    //    PlayCommand_Click(null, null);
-
-
-
-
+                    //else
+                    //{
+                    //    NPCs[0].player_weapon.FireNPC(NPCs[0]);
                     //}
-                    break;
 
-                case Key.Space: //Прыжок
-                    flipTrans.ScaleX = Player.player_flip;
+                    //NPCs[0].Walk(-1, 28);
+                    //await Task.Delay(1000);
+                    //NPCs[0].Walk(1, 28);
 
-                    if (space_pressed == false)
+
+
+                    //flipTrans.ScaleX = -1;
+                    //NPCs[1].player_flip = -1;
+                    //Пересоздаём табло
+                    gridok.Children.Remove(weapon_table);
+                    gridok.Children.Add(weapon_table);
+                    NPCs[0].Say("Рад что ты жив.\nНужно добраться до базы\nкак можно скорее.\nДержи два пистолетных магазина");
+                    NPCs[0].Walk(1, 75);
+
+                    //console.Text += "spawn NPCs 1";
+                    //PlayCommand_Click(null, null);
+                    //NPCs[1].Fire(20, NPCs[1]);
+
+                    //NPCs[0].Say("Здраствуй, брат!\nЕсли ты хочешь\nвыжить в этой зоне\nтебе необходима\nбоевая подготовка\nНу как берёшся?");
+                    //while (true)
+                    //{
+                    //    await Task.Delay(1);
+                    //    if (chat.Content.ToString().Contains("да") || chat.Content.ToString().Contains("OK"))
+                    //    {
+                    //        NPCs[1].Say("Тогда держи ствол и стрельни\nв этот ящик");                               
+                    //        Player.weapons[1] = weapons[0];
+                    //        Player.weapons[0] = weapons[2];
+                    //        Grid.SetRow(s_models[0], 1);
+                    //        break;
+
+                    //    };
+                    //} 
+
+                }
+
+                if (Canvas.GetLeft(Player.general) == 650 && location == "level_2")
+                {
+                    location = "level";
+                    LoadConfig($"maps/{location}.cfg");
+                    console.Text += "clear";
+                    PlayCommand_Click(null, null);
+                    NPCs[0].alive = false;
+                    NPCs[0].weapon.Source = null;
+                    foreach (var i in NPCs)
                     {
-                        space_pressed = true;
-                        Canvas.SetTop(Player.general, jump_count);
-
-                        Canvas.SetTop(Player.weapon, jump_count + 194);
-                        Canvas.SetTop(bullet_obj, jump_count + 194);
-                        jump_count += 50;
-                        Canvas.SetTop(Player.general, jump_count);
-
-                        Canvas.SetTop(Player.weapon, jump_count + 194);
-                        Canvas.SetTop(bullet_obj, jump_count + 194);
-
-                        for (int i = 0; i < 40; i++) //Анимация падения
+                        if (!i.alive)
                         {
-                            await Task.Delay(1);
-                            jump_count += 2;
-                            Canvas.SetTop(Player.general, jump_count);
-
-                            Canvas.SetTop(Player.weapon, jump_count + 70);
-                            Canvas.SetTop(bullet_obj, jump_count + 70);
+                            RotateTransform rotate = new RotateTransform(90);
+                            i.general.RenderTransform = rotate;
+                            i.walk_speed = 0;
                         }
-
-                        jump_count = 0;
-                        space_pressed = false;
                     }
+                    NPCs[1].Walk(1, 50);
+                    NPCs[1].Fire(21, NPCs[1]);
 
-                    //x_coords.Content += "\n" + Canvas.GetTop(Player.general);
 
-                    break;
+                }
 
-                case Key.D2: //Клавиша "2" (переключение на пистолет)
-                    flipTrans.ScaleX = Player.player_flip;                   
-                    
-                    Player.player_weapon = Player.weapons[1]; //Оружие игрока - пистолет
-                    Player.weapon.Source = Player.player_weapon.Skin[0]; //его изображение                  
-                    //Отображение счётика БП для данного орудия
-                    weapon_table.Content = $"Health: {Player.health}\n{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
-                    if (Player.weapon.Source == null)
+            }
+
+
+
+            if (e.Key == keyboard[1]) { //Движение налево
+
+                flipTrans.ScaleX = -1;
+                Player.player_flip = -1;
+                Player.Walking();
+                count -= Player.walk_speed;
+
+                Canvas.SetLeft(Player.general, count);
+
+                Canvas.SetLeft(Player.weapon, count - 41);
+                //if (Canvas.GetLeft(Player.general) == -5 && location != "level")
+                //{ //Переход обратно
+                //    location = "level";
+                //    LoadConfig($"maps/{location}.cfg");
+                //    gridok.Background = gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}level.png")));
+                //    console.Text += "clear";
+                //    PlayCommand_Click(null, null);
+
+
+
+
+                //}
+            }
+
+
+            if (e.Key == keyboard[2])
+            { //Прыжок
+                flipTrans.ScaleX = Player.player_flip;
+
+                if (space_pressed == false)
+                {
+                    space_pressed = true;
+                    Canvas.SetTop(Player.general, jump_count);
+
+                    Canvas.SetTop(Player.weapon, jump_count + 194);
+                    Canvas.SetTop(bullet_obj, jump_count + 194);
+                    jump_count += 50;
+                    Canvas.SetTop(Player.general, jump_count);
+
+                    Canvas.SetTop(Player.weapon, jump_count + 194);
+                    Canvas.SetTop(bullet_obj, jump_count + 194);
+
+                    for (int i = 0; i < 40; i++) //Анимация падения
                     {
-                        weapon_table.Content = $"Health: {Player.health}";
+                        await Task.Delay(1);
+                        jump_count += 2;
+                        Canvas.SetTop(Player.general, jump_count);
+
+                        Canvas.SetTop(Player.weapon, jump_count + 70);
+                        Canvas.SetTop(bullet_obj, jump_count + 70);
                     }
-                    break;
-                case Key.D1:  //Клавиша "2" (переключение на винтовку)
-                    flipTrans.ScaleX = Player.player_flip;
-                    Player.player_weapon = Player.weapons[0];
-                    Player.weapon.Source = Player.player_weapon.Skin[0];                 
-                    weapon_table.Content = $"Health: {Player.health}\n{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
-                    if (Player.weapon.Source == null)
-                    {
-                        weapon_table.Content = $"Health: {Player.health}";
-                    }
-                    break;
-                case Key.Back: //Клавиша "Backspace" (оружие убрал!)
-                    flipTrans.ScaleX = Player.player_flip;
-                    Player.weapon.Source = null;                   
+
+                    jump_count = 0;
+                    space_pressed = false;
+                }
+
+                //x_coords.Content += "\n" + Canvas.GetTop(Player.general);
+
+            }
+
+            if (e.Key == keyboard[3])
+            { //Клавиша "2" (переключение на пистолет)
+                flipTrans.ScaleX = Player.player_flip;
+
+                Player.player_weapon = Player.weapons[1]; //Оружие игрока - пистолет
+                Player.weapon.Source = Player.player_weapon.Skin[0]; //его изображение                  
+                                                                     //Отображение счётика БП для данного орудия
+                weapon_table.Content = $"Health: {Player.health}\n{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
+                if (Player.weapon.Source == null)
+                {
                     weapon_table.Content = $"Health: {Player.health}";
-                    break;
+                }
+            }
+            if (e.Key == keyboard[4])
+            {  //Клавиша "2" (переключение на винтовку)
+                flipTrans.ScaleX = Player.player_flip;
+                Player.player_weapon = Player.weapons[0];
+                Player.weapon.Source = Player.player_weapon.Skin[0];
+                weapon_table.Content = $"Health: {Player.health}\n{Player.player_weapon.cartridge_name}\n--------------\n{Player.player_weapon.in_magazine_count} / {Player.player_weapon.cartridge_count}";
+                if (Player.weapon.Source == null)
+                {
+                    weapon_table.Content = $"Health: {Player.health}";
+                }
+            }
+            if (e.Key == keyboard[5])
+            { //Клавиша "Backspace" (оружие убрал!)
+                flipTrans.ScaleX = Player.player_flip;
+                Player.weapon.Source = null;
+                weapon_table.Content = $"Health: {Player.health}";
+            }
 
-                case Key.Enter:
-                    //int side = 0;
-                    flipTrans.ScaleX = Player.player_flip;
-                    if (Player.weapon.Source != null) //Только если есть волына
+            if (e.Key == keyboard[6])
+            {
+                //int side = 0;
+                flipTrans.ScaleX = Player.player_flip;
+                if (Player.weapon.Source != null) //Только если есть волына
+                {
+                    Player.player_weapon.Fire(); //Огонь!
+                                                 //Если кончились патроны стрелять не должно
+                    if (Player.player_weapon.in_magazine_count != 0 && Player.player_weapon.in_magazine_count < Player.player_weapon.in_magazine)
                     {
-                        Player.player_weapon.Fire(); //Огонь!
-                        //Если кончились патроны стрелять не должно
-                        if (Player.player_weapon.in_magazine_count != 0 && Player.player_weapon.in_magazine_count < Player.player_weapon.in_magazine) 
+                        foreach (var i in NPCs)
                         {
-                            foreach (var i in NPCs)
+                            if (Canvas.GetLeft(i.general) > Canvas.GetLeft(Player.general) && Player.player_flip == 1 || Canvas.GetLeft(i.general) < Canvas.GetLeft(Player.general) && Player.player_flip == -1)
                             {
-                                if (Canvas.GetLeft(i.general) > Canvas.GetLeft(Player.general) && Player.player_flip == 1 || Canvas.GetLeft(i.general) < Canvas.GetLeft(Player.general) && Player.player_flip == -1)
+
+                                i.health -= Player.player_weapon.damage;
+
+                                if (i == NPCs[0])
                                 {
-                                  
-                                        i.health -= Player.player_weapon.damage;
-
-                                        if (i == NPCs[0])
-                                        {
-                                            i.Fire(1, i);
-                                        }
-
-                                        if (i.health <= 0)
-                                        {
-                                            RotateTransform rotate = new RotateTransform(90);
-                                            i.general.RenderTransform = rotate;
-                                            i.walk_speed = 0;
-                                            i.alive = false;
-                                        }
-                                    
+                                    i.Fire(1, i);
                                 }
-                            }
-                            //try { 
-                            //player.Children.Add(bullet_obj); //Спавн маслины     
-                            
-                            //    for (int i = 0; i < 5000; i += 500) //её полёт (пока только в одну сторону)
-                            //    {
-                            //        //if(i > 1000)
-                            //        //{
-                            //        //    gridok.Children.Remove(woodenbox_obj);
-                            //        //    NPCs[1].Say("Ого! Держи патроны");                                  
-                            //        //    weapons[0].cartridge_count += 20;
-                            //        //    break;
-                            //        //}
-                            //        await Task.Delay(1); //Прошла типа одна секунда                         
-                            //        Canvas.SetLeft(bullet_obj, count + 82 + i); //И быстро полетела (кто не поймал - я не виноват)                                  
-                            //    }
-                            
-                            //player.Children.Remove(bullet_obj); //Приземлилась
-                            //}
-                            //catch { }
-                        }                                              
-                    }
-                    break;
-                    
-                case Key.OemTilde:
-                    try
-                    {
-                        gridok.Children.Add(console); //Отображаем консольку
-                        gridok.Children.Add(console_button); //Кнопку исполнения
-                        Grid.SetColumnSpan(console, 5); //Расположение консоли
-                        Grid.SetColumn(console_button, 6); //Расположение её кнопки
-                        console_button.Content = "Play"; //Играть!
-                        console_button.Click += PlayCommand_Click; //Подписываем на исполнение
-                        console.Background = Brushes.Black; //Делаем брутально-чёрной
-                        console.FontFamily = Fonts.SystemFontFamilies.First(x => x.ToString() == "Consolas"); //Харатерно консольный шрифт
-                        console.Foreground = Brushes.White;
-                        console.Focus();  //Cтавим её на фокус     
-                    }
-                    catch { };
-                    break;
-                case Key.Escape:
-                    if (location == "authors")
-                    {
-                        gridok.Children.Remove(authors_title);
-                        gridok.Children.Add(play);
-                        gridok.Children.Add(authors);
-                        //gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}Series.jpg")));
-                        LoadConfig("user.cfg");
-                        break;
 
+                                if (i.health <= 0)
+                                {
+                                    RotateTransform rotate = new RotateTransform(90);
+                                    i.general.RenderTransform = rotate;
+                                    i.walk_speed = 0;
+                                    i.alive = false;
+                                }
+
+                            }
+                        }
+                        //try { 
+                        //player.Children.Add(bullet_obj); //Спавн маслины     
+
+                        //    for (int i = 0; i < 5000; i += 500) //её полёт (пока только в одну сторону)
+                        //    {
+                        //        //if(i > 1000)
+                        //        //{
+                        //        //    gridok.Children.Remove(woodenbox_obj);
+                        //        //    NPCs[1].Say("Ого! Держи патроны");                                  
+                        //        //    weapons[0].cartridge_count += 20;
+                        //        //    break;
+                        //        //}
+                        //        await Task.Delay(1); //Прошла типа одна секунда                         
+                        //        Canvas.SetLeft(bullet_obj, count + 82 + i); //И быстро полетела (кто не поймал - я не виноват)                                  
+                        //    }
+
+                        //player.Children.Remove(bullet_obj); //Приземлилась
+                        //}
+                        //catch { }
+                    }
+                }
+            }
+
+            if (e.Key == keyboard[7])
+            {
+                try
+                {
+                    gridok.Children.Add(console); //Отображаем консольку
+                    gridok.Children.Add(console_button); //Кнопку исполнения
+                    Grid.SetColumnSpan(console, 5); //Расположение консоли
+                    Grid.SetColumn(console_button, 6); //Расположение её кнопки
+                    console_button.Content = "Play"; //Играть!
+                    console_button.Click += PlayCommand_Click; //Подписываем на исполнение
+                    console.Background = Brushes.Black; //Делаем брутально-чёрной
+                    console.FontFamily = Fonts.SystemFontFamilies.First(x => x.ToString() == "Consolas"); //Харатерно консольный шрифт
+                    console.Foreground = Brushes.White;
+                    console.Focus();  //Cтавим её на фокус     
+                }
+                catch { };
+            }
+            if (e.Key == keyboard[8])
+            {
+                if (location == "authors")
+                {
+                    gridok.Children.Remove(authors_title);
+                    gridok.Children.Add(play);
+                    gridok.Children.Add(authors);
+                    //gridok.Background = new ImageBrush(new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}Series.jpg")));
+                    LoadConfig("user.cfg");
+                    location = "main_menu";
+                }
+                
                     }
                     //if(location != "authors" || location != null)
                     //{
@@ -772,7 +788,7 @@ namespace WpfApp1
                     //    play.Click += Pause_Click;
                     //    this.KeyDown -= Dotnet_KeyDown;
                     //}
-                    break;
+                   
             }
         }
     }
@@ -791,13 +807,13 @@ namespace WpfApp1
         public static async void  Walking() //Анимация хождения (смена картинок через определёное время)
         {
             
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/player_skin/player_walking/player_coat_2.png")); 
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/player_skin/player_walking/player_coat_2.png")); 
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{new IniFile($"{Directory.GetCurrentDirectory()}\\System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
             await Task.Delay(5);
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/player_skin/player_walking/player_coat_3.png"));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/player_skin/player_walking/player_coat_3.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{new IniFile($"{Directory.GetCurrentDirectory()}\\System.ini").Read("visual", "player")}", UriKind.RelativeOrAbsolute));
         }        
        
     }
@@ -836,11 +852,11 @@ namespace WpfApp1
 
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_armored_walking_1.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "bot")}", UriKind.RelativeOrAbsolute));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{new IniFile($"{Directory.GetCurrentDirectory()}\\System.ini").Read("visual", "bot")}", UriKind.RelativeOrAbsolute));
             await Task.Delay(5);
             general.Source = new BitmapImage(new Uri("pack://application:,,,/player_skin/player_walking/player_armored_walking_2.png"));
             await Task.Delay(20);
-            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}/{new IniFile($"{Directory.GetCurrentDirectory().Replace(@"bin\Debug", "")}System.ini").Read("visual", "bot")}", UriKind.RelativeOrAbsolute));
+            general.Source = new BitmapImage(new Uri($@"{Directory.GetCurrentDirectory()}/{new IniFile($"{Directory.GetCurrentDirectory()}\\System.ini").Read("visual", "bot")}", UriKind.RelativeOrAbsolute));
         }
         public void Flip(int side)
         {
@@ -996,8 +1012,7 @@ namespace WpfApp1
             Player.weapon.Source = Skin[0];
         }
     }
-   
-}
+  
 
   
 

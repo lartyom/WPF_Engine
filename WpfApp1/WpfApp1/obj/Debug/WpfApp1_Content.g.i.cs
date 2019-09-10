@@ -9,6 +9,5 @@
 //------------------------------------------------------------------------------
 
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("bugtrapn-x64.dll")]
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("weapons/sounds/colt1911_fire.mp3")]
 
 
