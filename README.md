@@ -22,18 +22,36 @@
 |`exec`      |`<file_name.cfg>`|Runs configuration files|
 |`bind`      |`<funcID, keyID>`|Binds key to a specific action (for `keyID` see [here](https://docs.microsoft.com/ru-ru/dotnet/api/system.windows.input.key?view=netframework-4.8 "MS Docs: Key Enum"))|
 
-##System.ini
+## `System.ini`
 ```
 [colt_45]
 class             = WEAPON
+;class of game object
+
 name              = Colt .45
+;weapon name (don't used in the game)
+
 cartridge_name    = .45 ACP
+;ammunition caliber
+
 sound             = weapons\sounds\colt1911_fire.ogg
+;weapon sound
+
 skin              = weapons/colt_45.png,weapons/colt_45_fire.png
+;weapon image
+
 in_magazine       = 10
+;magazine capacity
+
 in_magazine_count = 0
+;cartridges quantity in magazine
+
 cartridge_count   = 30
+;cartridges quantity
+
 damage            = 25
+;weapon damage
+
 [colt_45_2]
 class             = WEAPON
 name              = Colt .45
