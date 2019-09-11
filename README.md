@@ -20,5 +20,5 @@
 |`cartridge` |`<pistol/rifle>`|Get cartridges for a rifle or pistol|
 |`chat`      |`<set_color, Color>`|Sets chat color|
 |`exec`      |`<file_name.cfg>`|Runs configuration files|
-|`bind`      |`<funcID, keyID>`|Binds key to a specific action (for "keyID" see [here](https://docs.microsoft.com/ru-ru/dotnet/api/system.windows.input.key?view=netframework-4.8 "MS Docs: Key Enum"))|
+|`bind`      |`<funcID, keyID>`|Binds key to a specific action (for `keyID` see [here](https://docs.microsoft.com/ru-ru/dotnet/api/system.windows.input.key?view=netframework-4.8 "MS Docs: Key Enum"))|
 
